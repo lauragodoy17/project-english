@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Digital Scrapbook</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .book {
+            width: 100%;
+            max-width: 1400px;
+            height: 700px;
+            background: #2c2416;
+            border-radius: 10px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+            display: flex;
+            position: relative;
+        }
+
+        .book::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 60px;
+            width: 6px;
+            background: linear-gradient(to bottom, #1a1410, #2c2416, #1a1410);
+            transform: translateX(-50%);
+            z-index: 10;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        .page-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page {
+            display: none;
+            width: 100%;
+            height: calc(100% - 60px);
+            background: #f9f6f0;
+            padding: 50px 60px;
+            position: relative;
+            background-image: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 31px,
+                    #e8dcc4 31px,
+                    #e8dcc4 32px
+                );
+            overflow: hidden;
+        }
+
+        .page.active {
+            display: block;
+            animation: pageFlip 0.8s ease-in-out;
+        }
+
+        @keyframes pageFlip {
+            0% {
+                opacity: 0;
+                transform: rotateY(-15deg);
+            }
+            100% {
+                opacity: 1;
+                transform: rotateY(0);
+            }
+        }
+
+        .page-left {
+            border-right: 1px solid #d4c5a9;
+        }
+
+        .page-right {
+            border-left: 1px solid #d4c5a9;
+        }
+
+        .page-number {
+            position: absolute;
+            bottom: 20px;
+            font-size: 14px;
+            color: #8b7355;
+            font-style: italic;
+            z-index: 5;
+        }
+
+        .page-left .page-number {
+            left: 60px;
+        }
+
+        .page-right .page-number {
+            right: 60px;
+        }
+
+        .page-title {
+            font-size: 38px;
+            color: #3d2817;
+            margin-bottom: 20px;
+            font-family: 'Brush Script MT', cursive;
+            text-align: center;
+            border-bottom: 2px solid #8b7355;
+            padding-bottom: 12px;
+        }
+
+        .section-icon {
+            text-align: center;
+            font-size: 45px;
+            margin-bottom: 15px;
+        }
+
+        .entry {
+            margin-bottom: 20px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.4);
+            border-left: 4px solid #8b7355;
+            position: relative;
+        }
+
+        .entry-title {
+            font-size: 17px;
+            color: #3d2817;
+            margin-bottom: 8px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .entry-text {
+            font-size: 12px;
+            color: #4a4a4a;
+            line-height: 20px;
+            font-style: italic;
+        }
+
+        .photo-frame {
+            width: 200px;
+            min-height: 200px;
+            max-height: 200px;
+            height: 200px;
+            background: #fff;
+            border: 4px solid #8b7355;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+            margin: 12px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            transform: rotate(-1deg);
+        }
+
+        .photo-frame::before {
+            content: '📷';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 20px;
+            opacity: 0.3;
+            z-index: 1;
+        }
+
+        .photo-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .photo-placeholder {
+            color: #8b7355;
+            font-style: italic;
+            text-align: center;
+            padding: 15px;
+            font-size: 11px;
+        }
+
+        .audio-player {
+            background: #e8dcc4;
+            border: 3px solid #8b7355;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .audio-player audio {
+            width: 100%;
+            height: 40px;
+            outline: none;
+        }
+
+        .audio-player audio::-webkit-media-controls-panel {
+            background-color: #f9f6f0;
+        }
+
+        .audio-placeholder {
+            background: #e8dcc4;
+            padding: 15px;
+            text-align: center;
+            color: #8b7355;
+            font-style: italic;
+            border: 2px dashed #8b7355;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 11px;
+        }
+
+        .audio-placeholder::before {
+            content: '🎵 ';
+            font-size: 16px;
+        }
+
+        .navigation {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: #1a1410;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+            z-index: 20;
+        }
+
+        .nav-button {
+            background: #8b7355;
+            color: #f9f6f0;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-family: Georgia, serif;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .nav-button:hover:not(:disabled) {
+            background: #654321;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+        }
+
+        .nav-button:disabled {
+            background: #5a5a5a;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .page-indicator {
+            color: #f9f6f0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .cover {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #f9f6f0 0%, #e8dcc4 100%);
+            text-align: center;
+        }
+
+        .cover-title {
+            font-size: 64px;
+            color: #3d2817;
+            margin-bottom: 20px;
+            font-family: 'Brush Script MT', cursive;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .cover-subtitle {
+            font-size: 28px;
+            color: #8b7355;
+            font-style: italic;
+        }
+
+        .cover-decoration {
+            margin-top: 40px;
+            font-size: 20px;
+            color: #8b7355;
+        }
+
+        .handwriting {
+            font-family: 'Brush Script MT', cursive;
+            font-size: 18px;
+        }
+
+        .quote {
+            border-left: 4px solid #d4c5a9;
+            padding-left: 15px;
+            margin: 12px 0;
+            font-style: italic;
+            color: #5a5a5a;
+            font-size: 11px;
+        }
+
+        .abandoned-entry {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.3);
+            border: 2px solid #8b7355;
+        }
+
+        .abandoned-title {
+            font-size: 18px;
+            color: #3d2817;
+            margin-bottom: 10px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .abandoned-section {
+            margin: 6px 0;
+        }
+
+        .abandoned-section strong {
+            color: #654321;
+            display: block;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+
+        .abandoned-section p {
+            font-size: 11px;
+        }
+
+        .abandoned-photo {
+            width: 220px;
+            min-height: 220px;
+            max-height: 220px;
+            height: 220px;
+            background: #fff;
+            border: 4px solid #8b7355;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+            margin: 15px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            transform: rotate(1deg);
+        }
+
+        .abandoned-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .scroll-content {
+            height: calc(100% - 110px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 10px;
+        }
+
+        .scroll-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .scroll-content::-webkit-scrollbar-track {
+            background: #e8dcc4;
+        }
+
+        .scroll-content::-webkit-scrollbar-thumb {
+            background: #8b7355;
+            border-radius: 4px;
+        }
+
+        .intro-text {
+            font-size: 15px;
+            color: #4a4a4a;
+            line-height: 26px;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .cover-spread {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 60px;
+            display: none;
+            z-index: 15;
+        }
+
+        .cover-spread.active {
+            display: flex;
+        }
+
+        .cover-full {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #f9f6f0 0%, #e8dcc4 100%);
+            text-align: center;
+        }
+
+        @media (max-width: 1200px) {
+            .book {
+                height: 600px;
+            }
+
+            .page {
+                padding: 40px 50px;
+            }
+
+            .page-title {
+                font-size: 36px;
+            }
+
+            .photo-frame {
+                width: 180px;
+                height: 180px;
+                min-height: 180px;
+                max-height: 180px;
+            }
+
+            .abandoned-photo {
+                width: 200px;
+                height: 200px;
+                min-height: 200px;
+                max-height: 200px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .book {
+                height: 700px;
+            }
+
+            .page {
+                padding: 30px 25px;
+            }
+
+            .page-title {
+                font-size: 28px;
+            }
+
+            .entry-title {
+                font-size: 16px;
+            }
+
+            .entry-text {
+                font-size: 11px;
+            }
+
+            .photo-frame {
+                width: 140px;
+                height: 140px;
+                min-height: 140px;
+                max-height: 140px;
+            }
+
+            .abandoned-photo {
+                width: 160px;
+                height: 160px;
+                min-height: 160px;
+                max-height: 160px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="book">
+        <!-- COVER SPREAD (full width) -->
+        <div class="cover-spread active" id="cover">
+            <div class="cover-full">
+                <h1 class="cover-title">My Life's<br>Scrapbook</h1>
+                <p class="cover-subtitle">A journey through moments that shaped me</p>
+                <div class="cover-decoration">
+                    <p>🎵 Music • 🎬 Films • ✨ Experiences • 🏚️ Forgotten Places</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- LEFT PAGES -->
+        <div class="page-container page-left">
+            <!-- Spread 1: Music Left -->
+            <div class="page" id="left0">
+                <div class="section-icon">🎵</div>
+                <h2 class="page-title">Music That Changed Me</h2>
+                <div class="scroll-content">
+                    <div class="entry">
+                        <h3 class="entry-title">Andrés Cepeda</h3>
+                        <div class="photo-frame">
+                            <div class="photo-placeholder">
+                                <img src="img1.jpg" alt="Andrés Cepeda"> 
+                            </div>
+                            
+                        </div>
+                        <div class="audio-placeholder">
+                             
+                        <div class="audio-player">
+                            <audio controls>
+                                <source src="Tengo Ganas - Andres Cepeda (Cover Audio).mp3" type="audio/mpeg">
+                            </audio>
+                        </div>
+                
+                        </div>
+                  
+                        <p class="entry-text">
+                            His voice carries the soul of Colombia. Every ballad tells a story of love, heartbreak, 
+                            and resilience. His lyrics helped me understand that vulnerability is strength, 
+                            that feeling deeply is not a weakness but a gift.
+                        </p>
+                    </div>
+
+                    <div class="entry">
+                        <h3 class="entry-title">La Champeta</h3>
+                        <div class="photo-frame">
+                            <div class="photo-placeholder">
+                                [Champeta dancers or Caribbean vibes]
+                            </div>
+                        </div>
+                        <div class="audio-placeholder">
+                            [Add audio file: champeta.mp3]
+                        </div>
+                        <p class="entry-text">
+                            The rhythm of the Colombian Caribbean coast. Pure joy in musical form. 
+                            Dancing to champeta taught me to let go, to move without thinking, 
+                            to celebrate life with every beat. It's impossible to be sad when champeta is playing.
+                        </p>
+                    </div>
+                </div>
+                <div class="page-number">2</div>
+            </div>
+
+            <!-- Spread 2: Films Left -->
+            <div class="page" id="left1">
+                <div class="section-icon">🎬</div>
+                <h2 class="page-title">Films That Moved Me</h2>
+                <div class="scroll-content">
+                    <div class="entry">
+                        <h3 class="entry-title">The Twilight Saga</h3>
+                        <div class="photo-frame">
+                            <div class="photo-placeholder">
+                                [Twilight poster or Edward & Bella]
+                            </div>
+                        </div>
+                        <p class="entry-text">
+                            Say what you want, but this saga shaped my teenage years. The romance, 
+                            the supernatural, the impossible choices between love and duty. 
+                            It taught me about loyalty, sacrifice, and choosing your own path despite what others expect.
+                        </p>
+                        <div class="quote">
+                            "And so the lion fell in love with the lamb..."
+                        </div>
+                    </div>
+
+                    <div class="entry">
+                        <h3 class="entry-title">The Purge</h3>
+                        <div class="photo-frame">
+                            <div class="photo-placeholder">
+                                [The Purge movie poster or mask]
+                            </div>
+                        </div>
+                        <p class="entry-text">
+                            A terrifying reflection of society. What would we become without rules? 
+                            This film made me think deeply about human nature, morality, and the thin line 
+                            between civilization and chaos. Disturbing but thought-provoking.
+                        </p>
+                        <div class="quote">
+                            "Blessed be our New Founding Fathers..."
+                        </div>
+                    </div>
+                </div>
+                <div class="page-number">4</div>
+            </div>
+
+            <!-- Spread 3: Experiences Left -->
+            <div class="page" id="left2">
+                <div class="section-icon">✨</div>
+                <h2 class="page-title">Unforgettable Experiences</h2>
+                <div class="scroll-content">
+                    <div class="entry">
+                        <h3 class="entry-title">Choosing Systems Engineering</h3>
+                        <div class="photo-frame">
+                            <div class="photo-placeholder">
+                                [University or coding imagery]
+                            </div>
+                        </div>
+                        <p class="entry-text">
+                            The day I decided to study Systems Engineering. Everyone had opinions about what I should do, 
+                            but I chose this path because I wanted to build things, to solve problems, to create 
+                            solutions through technology. Best decision I ever made. This career opened doors I never imagined.
+                        </p>
+                    </div>
+
+                    <div class="entry">
+                        <h3 class="entry-title">Losing Lucas</h3>
+                        <div class="photo-frame">
+                            <div class="photo-placeholder">
+                                [Photo of Lucas, your pet]
+                            </div>
+                        </div>
+                        <p class="entry-text">
+                            Lucas was more than a pet—he was family. His death taught me about grief, 
+                            about the unconditional love animals give us, about how something so small can leave 
+                            such a massive hole in your heart. I still miss him every single day.
+                        </p>
+                    </div>
+                </div>
+                <div class="page-number">6</div>
+            </div>
+
+            <!-- Spread 4: Abandoned Places Left -->
+            <div class="page" id="left3">
+                <div class="section-icon">🏚️</div>
+                <h2 class="page-title">Places That Were</h2>
+                <div class="scroll-content">
+                    <div class="abandoned-entry">
+                        <h3 class="abandoned-title">Babilonia - Chía</h3>
+                        <div class="abandoned-photo">
+                            <div class="photo-placeholder">
+                                [Babilonia building exterior]
+                            </div>
+                        </div>
+                        <div class="abandoned-section">
+                            <strong>What it was:</strong>
+                            <p class="entry-text">Many neighbors thought it was a restaurant or nightclub, but that wasn't true. 
+                            Alfonso Miranda and his family, owners of renowned ceramic stores, converted it years ago 
+                            into a space to store and exhibit demolition materials and antiques. A warehouse of history itself.</p>
+                        </div>
+                        <div class="abandoned-section">
+                            <strong>My memories:</strong>
+                            <p class="entry-text">An architect who visited described it as "a walk through history"—
+                            antique windows and doors, wooden beams, stone drinking fountains, period hardware, porcelain, 
+                            unique mosaics and bricks. On the second floor, there was even an old electric train, 
+                            goldsmithing pieces, and carpenter and stone carver workshops. Like stepping into another era.</p>
+                        </div>
+                        <div class="abandoned-section">
+                            <strong>Now:</strong>
+                            <p class="entry-text">Standing abandoned, windows broken, treasures scattered or stolen. 
+                            The magic has faded. What was once a museum of forgotten things is now forgotten itself. 
+                            Time claims everything eventually.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="page-number">8</div>
+            </div>
+
+            <!-- Spread 5: Closing Left -->
+            <div class="page" id="left4">
+                <div class="scroll-content">
+                    <p class="intro-text" style="margin-top: 120px; font-size: 19px;">
+                        These pages hold pieces of my soul—<br><br>
+                        memories that shaped me,<br>
+                        moments I'll never forget,<br>
+                        and places that live on only in my heart.
+                    </p>
+                    <div class="quote" style="margin-top: 100px; text-align: center; border: none;">
+                        <p class="handwriting" style="font-size: 28px; color: #654321;">
+                            "The past is never dead.<br>It's not even past."
+                        </p>
+                        <p style="font-size: 16px; color: #8b7355; margin-top: 20px;">— William Faulkner</p>
+                    </div>
+                </div>
+                <div class="page-number">10</div>
+            </div>
+        </div>
+
+        <!-- RIGHT PAGES -->
+        <div class="page-container page-right">
+            <!-- Spread 1: Music Right -->
+            <div class="page" id="right0">
+                <div class="scroll-content" style="margin-top: 50px;">
+                    <p class="intro-text">
+                        Music has been my constant companion through every season of life. 
+                        These sounds are not just melodies—they are the soundtrack of who I am.
+                    </p>
+
+                    <div class="entry" style="margin-top: 25px;">
+                        <h3 class="entry-title">Electronic Music</h3>
+                        <div class="photo-frame">
+                            <div class="photo-placeholder">
+                                [DJ or festival lights imagery]
+                            </div>
+                        </div>
+                        <div class="audio-placeholder">
+                            [Add audio file: electronic.mp3]
+                        </div>
+                        <p class="entry-text">
+                            The bass drops, the synths, the build-ups—electronic music is pure energy. 
+                            It helped me through late-night coding sessions, gym workouts, and moments when I needed 
+                            to feel alive. Every beat is a reminder to keep moving forward, to never stop evolving.
+                        </p>
+                    </div>
+
+                    <div class="entry">
+                        <h3 class="entry-title">Popular Music</h3>
+                        <div class="photo-frame">
+                            <div class="photo-placeholder">
+                                [Concert crowd or popular artists]
+                            </div>
+                        </div>
+                        <div class="audio-placeholder">
+                            [Add audio file: popular.mp3]
+                        </div>
+                        <p class="entry-text">
+                            The songs everyone knows, the ones you can't help but sing along to. 
+                            Popular music connects us all—at parties, in cars, at gatherings. 
+                            It's the universal language that brings people together regardless of background.
+                        </p>
+                    </div>
+                </div>
+                <div class="page-number">3</div>
+            </div>
+
+            <!-- Spread 2: Films Right -->
+            <div class="page" id="right1">
+                <div class="scroll-content" style="margin-top: 50px;">
+                    <p class="intro-text">
+                        Cinema and animation showed me worlds beyond imagination 
+                        and taught me that entertainment can be profound.
+                    </p>
+
+                    <div class="entry" style="margin-top: 25px;">
+                        <h3 class="entry-title">The Amazing World of Gumball</h3>
+                        <div class="photo-frame">
+                            <div class="photo-placeholder">
+                                [Gumball and Darwin]
+                            </div>
+                        </div>
+                        <p class="entry-text">
+                            Don't let the cartoon fool you—this show is brilliant. The humor is clever, 
+                            the animation experimental, and the life lessons hidden in chaos. 
+                            Gumball taught me that it's okay to be weird, to embrace chaos, and to find humor in everything.
+                        </p>
+                        <div class="quote">
+                            "The future is not set. There is no fate but what we make for ourselves."
+                        </div>
+                    </div>
+
+                    <div class="entry">
+                        <h3 class="entry-title">Paranormal Activity</h3>
+                        <div class="photo-frame">
+                            <div class="photo-placeholder">
+                                [Paranormal Activity scene or camera]
+                            </div>
+                        </div>
+                        <p class="entry-text">
+                            The found-footage style made everything feel too real. Watched it alone at night—
+                            huge mistake. But it showed me how powerful simplicity can be in horror. 
+                            Sometimes what you don't see is scarier than what you do. Nightmares for weeks.
+                        </p>
+                        <div class="quote">
+                            "I think we should leave."
+                        </div>
+                    </div>
+                </div>
+                <div class="page-number">5</div>
+            </div>
+
+            <!-- Spread 3: Experiences Right -->
+            <div class="page" id="right2">
+                <div class="scroll-content" style="margin-top: 50px;">
+                    <p class="intro-text">
+                        Life is made of fleeting moments that somehow become eternal in memory. 
+                        These transformed who I am.
+                    </p>
+
+                    <div class="entry" style="margin-top: 25px;">
+                        <h3 class="entry-title">From Hating Geeks to Loving Anime</h3>
+                        <div class="photo-frame">
+                            <div class="photo-placeholder">
+                                [Anime artwork or character]
+                            </div>
+                        </div>
+                        <p class="entry-text">
+                            I used to judge people who watched anime, called them geeks and freaks. 
+                            Then I actually gave it a chance—and everything changed. The storytelling, 
+                            the emotions, the depth. I became what I once mocked, and I've never been happier. 
+                            Lesson learned: never judge what you don't understand.
+                        </p>
+                    </div>
+
+                    <div class="entry">
+                        <h3 class="entry-title">Moving to a New City</h3>
+                        <div class="photo-frame">
+                            <div class="photo-placeholder">
+                                [New city skyline or moving boxes]
+                            </div>
+                        </div>
+                        <p class="entry-text">
+                            Leaving everything familiar behind. New streets, new faces, new challenges. 
+                            Starting over is terrifying but also liberating. This move forced me to grow up, 
+                            to become independent, to build a life from scratch. Hardest and best thing I've done.
+                        </p>
+                    </div>
+                </div>
+                <div class="page-number">7</div>
+            </div>
+
+            <!-- Spread 4: Abandoned Places Right -->
+            <div class="page" id="right3">
+                <div class="scroll-content" style="margin-top: 35px;">
+                    <div class="abandoned-entry">
+                        <h3 class="abandoned-title">The Corner Store</h3>
+                        <div class="abandoned-photo">
+                            <div class="photo-placeholder">
+                                [Small neighborhood store]
+                            </div>
+                        </div>
+                        <div class="abandoned-section">
+                            <strong>What it was:</strong>
+                            <p class="entry-text">A small corner store where I went almost every day after school. 
+                            Shelves packed with candy bars, chips, and sodas. The owner always knew what I wanted 
+                            before I even asked. It was my daily ritual, my little moment of joy.</p>
+                        </div>
+                        <div class="abandoned-section">
+                            <strong>My memories:</strong>
+                            <p class="entry-text">Buying chocolate bars with my allowance. The bell that rang when you opened 
+                            the door. The smell of fresh bread in the mornings. Meeting friends there after class. 
+                            The owner's kind smile. It was more than a store—it was a meeting place, a piece of community.</p>
+                        </div>
+                        <div class="abandoned-section">
+                            <strong>Now:</strong>
+                            <p class="entry-text">Shutters down permanently. A "For Rent" sign faded by the sun. 
+                            The owner retired or maybe passed away—I never found out. The building sits empty, 
+                            just another casualty of chain stores and changing neighborhoods. The chocolate bars taste different now.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="page-number">9</div>
+            </div>
+
+            <!-- Spread 5: Back Cover -->
+            <div class="page cover" id="right4">
+                <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; text-align: center;">
+                    <p class="handwriting" style="font-size: 32px; color: #654321; margin-bottom: 40px;">
+                        End of Chapter
+                    </p>
+                    <p class="intro-text" style="font-size: 16px; color: #8b7355;">
+                        But the story continues...
+                    </p>
+                </div>
+                <div class="page-number">11</div>
+            </div>
+        </div>
+
+        <div class="navigation">
+            <button class="nav-button" id="prevBtn" onclick="changePage(-1)">← Previous</button>
+            <span class="page-indicator">
+                <span id="spreadLabel">Cover</span>
+            </span>
+            <button class="nav-button" id="nextBtn" onclick="changePage(1)">Next →</button>
+        </div>
+    </div>
+
+    <script>
+        let currentSpread = -1;
+        const totalSpreads = 5;
+
+        const spreadLabels = [
+            'Music',
+            'Films', 
+            'Experiences',
+            'Abandoned Places',
+            'End'
+        ];
+
+        function showSpread(spreadNum) {
+            document.getElementById('cover').classList.remove('active');
+            
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            if (spreadNum === -1) {
+                document.getElementById('cover').classList.add('active');
+                document.getElementById('spreadLabel').textContent = 'Cover';
+            } else {
+                document.getElementById('left' + spreadNum).classList.add('active');
+                document.getElementById('right' + spreadNum).classList.add('active');
+                document.getElementById('spreadLabel').textContent = spreadLabels[spreadNum];
+            }
+            
+            document.getElementById('prevBtn').disabled = spreadNum === -1;
+            document.getElementById('nextBtn').disabled = spreadNum === totalSpreads - 1;
+        }
+
+        function changePage(direction) {
+            currentSpread += direction;
+            if (currentSpread < -1) currentSpread = -1;
+            if (currentSpread >= totalSpreads) currentSpread = totalSpreads - 1;
+            showSpread(currentSpread);
+        }
+
+        showSpread(-1);
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft') changePage(-1);
+            if (e.key === 'ArrowRight') changePage(1);
+        });
+    </script>
+</body>
+</html>
